@@ -1,48 +1,43 @@
+import { useEffect, useState } from "react";
 import { Avatar } from "@mui/material";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { useRouter } from "next/router";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { useCollection } from "react-firebase-hooks/firestore";
 import styled from "styled-components";
-import { auth, db } from "../firebase";
-import getReceiverEmail from "../utils/getReceiverEmail";
+import { db } from "../firebase";
 
-function Chat({ id, receiver }) {
+function Chat({ id, chatInfo }) {
+  const [receiverData, setReceiverData] = useState({});
   const router = useRouter();
-  const [user] = useAuthState(auth);
 
-  // const receiverEmail = getReceiverEmail(users, user);
-  // const [recipientSnapshot] = useCollection(
-  //   query(collection(db, "users"), where("email", "==", receiver))
-  // );
-  // const recipientUser = recipientSnapshot?.docs?.data();
+  useEffect(() => {
+    const getSnapshot = async () => {
+      if (chatInfo) {
+        const docRef = collection(db, "users");
+        const getReceiverQuery = query(
+          docRef,
+          where("email", "==", chatInfo?.receiver)
+        );
+        const querySnapshot = await getDocs(getReceiverQuery);
+        querySnapshot.forEach((doc) => {
+          console.log(doc.id, " => ", doc.data());
+          setReceiverData(doc.data());
+        });
+      }
+    };
+    getSnapshot();
+  }, [chatInfo]);
 
+  console.log(chatInfo?.receiver);
   const enterChat = () => {
     router.push(`/chat/${id}`);
   };
 
-  // return (
-  //   <Container onClick={enterChat}>
-  //     {recipientUser ? (
-  //       <UserAvatar src={recipient.photoURL} />
-  //     ) : (
-  //       <UserAvatar>{receiverEmail[0].toUpperCase()}</UserAvatar>
-  //     )}
-  //     <p>{receiverEmail}</p>
-  //   </Container>
-  // );
-
-  <h1>Chat</h1>
-  // return (
-  //   <Container onClick={enterChat}>
-  //     {recipientUser ? (
-  //       <UserAvatar src={recipient.photoURL} />
-  //     ) : (
-  //       <UserAvatar>{receiver.toUpperCase()}</UserAvatar>
-  //     )}
-  //     <p>{receiver}</p>
-  //   </Container>
-  // );
+  return (
+    <Container onClick={enterChat}>
+      {chatInfo && <UserAvatar src={receiverData.photoURL} />}
+      <p>{chatInfo?.receiver}</p>
+    </Container>
+  );
 }
 
 export default Chat;

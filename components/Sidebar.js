@@ -1,4 +1,4 @@
-// import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Avatar, IconButton, Button } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
@@ -21,53 +21,29 @@ import {
 import Chat from "./Chat";
 import createChats from "@/utils/createChats";
 
-const Sidebar = async () => {
-  // const [chats, setChats] = useState([]);
+const Sidebar = () => {
+  const [chats, setChats] = useState([]);
   const [user] = useAuthState(auth);
-  // const userChatRef = query(
-  //   collection(db, `users/${user.uid}/chats`),
-  //   where("email", "==", user?.email)
-  // );
 
-  // const userChatRef = doc(db, 'users', `${user.id}`)
-  // const doc = await getDoc(userChatRef);
-  // const [chatsSnapshot, loading, error] = useCollection(userChatRef);
-  // const chatsSnapshot = getDocs(userChatRef);
-  // console.log("chatsnapshot: ", doc.data());
-
-  const userChats = query(
-    collectionGroup(db, "chats"),
-    where("sender", "==", user.email)
-  );
-  const querySnapshot = await getDocs(userChats);
-  let chatters = [];
-  if(user) {
-    querySnapshot.forEach((doc) => {
-      chatters.push(doc?.data()?.receiver);
-      // console.log(doc.id, " => ", doc.data());
-    });
-    console.log("receiver: ", chatters)
-  }
-
-  // useEffect(() => {
-  //   const getChats = () => {
-  //     const unsub = onSnapshot(queryChats, (snapshot) => {
-  //       let chatters = [];
-  //       snapshot.forEach((doc) => {
-  //         chatters.push(doc?.data());
-  //       });
-  //       setChats(chatters);
-  //       console.log(chatters);
-  //       // setChats(doc.data());
-  //     });
-
-  //     return () => unsub();
-  //   };
-
-  //   user.uid && getChats();
-  // }, [user.uid, queryChats]);
-
-  // console.log("chats: ", chats);
+  useEffect(() => {
+    const getChats = async () => {
+      const userChats = query(
+        collectionGroup(db, "chats"),
+        where("sender", "==", user.email)
+      );
+      const querySnapshot = await getDocs(userChats);
+      if (querySnapshot) {
+        let chatters = [];
+        console.log("snapshot exists");
+        querySnapshot?.forEach((doc) => {
+          chatters.push({ ...doc.data(), id: doc.id });
+        });
+        setChats(chatters);
+        console.log("receiver: ", chatters);
+      }
+    };
+    getChats();
+  }, [user.email]);
 
   // const createChat = () => {
   //   const input = prompt(
@@ -126,9 +102,9 @@ const Sidebar = async () => {
 
       <SidebarButton>Start a New Chat</SidebarButton>
 
-      {/* {chatsSnapshot?.docs?.map((chat) => (
-        <Chat key={chat.id} id={chat.id} receiver={receiver} />
-      ))} */}
+      {chats?.map((chat) => (
+        <Chat key={chat.id} id={chat.id} chatInfo={chat} />
+      ))}
     </Container>
   );
 };
