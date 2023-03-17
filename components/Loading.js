@@ -1,6 +1,7 @@
-import { Circle } from "better-react-spinkit";
+// import { Circle } from "better-react-spinkit";
 import Image from "next/image";
 import styled from "styled-components";
+import CircularProgress from '@mui/material/CircularProgress';
 
 function Loading() {
   const whatsappLogo =
@@ -16,7 +17,7 @@ function Loading() {
           height={200}
         />
         <Spacer />
-        <Circle color="#3CBC28" size={60} />
+        <CircularProgress color="success" />
       </div>
     </center>
   );

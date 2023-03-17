@@ -7,29 +7,42 @@ import styled from "styled-components";
 import { auth, db } from "../firebase";
 import getReceiverEmail from "../utils/getReceiverEmail";
 
-function Chat({ id, users }) {
+function Chat({ id, receiver }) {
   const router = useRouter();
   const [user] = useAuthState(auth);
-  const receiverEmail = getReceiverEmail(users, user);
-  const [recipientSnapshot] = useCollection(
-    query(collection(db, "users"), where("email", "==", receiverEmail))
-  );
-  const recipientUser = recipientSnapshot?.docs?.[0]?.data();
+
+  // const receiverEmail = getReceiverEmail(users, user);
+  // const [recipientSnapshot] = useCollection(
+  //   query(collection(db, "users"), where("email", "==", receiver))
+  // );
+  // const recipientUser = recipientSnapshot?.docs?.data();
 
   const enterChat = () => {
     router.push(`/chat/${id}`);
   };
 
-  return (
-    <Container onClick={enterChat}>
-      {recipientUser ? (
-        <UserAvatar src={recipient.photoURL} />
-      ) : (
-        <UserAvatar>{receiverEmail[0].toUpperCase()}</UserAvatar>
-      )}
-      <p>{receiverEmail}</p>
-    </Container>
-  );
+  // return (
+  //   <Container onClick={enterChat}>
+  //     {recipientUser ? (
+  //       <UserAvatar src={recipient.photoURL} />
+  //     ) : (
+  //       <UserAvatar>{receiverEmail[0].toUpperCase()}</UserAvatar>
+  //     )}
+  //     <p>{receiverEmail}</p>
+  //   </Container>
+  // );
+
+  <h1>Chat</h1>
+  // return (
+  //   <Container onClick={enterChat}>
+  //     {recipientUser ? (
+  //       <UserAvatar src={recipient.photoURL} />
+  //     ) : (
+  //       <UserAvatar>{receiver.toUpperCase()}</UserAvatar>
+  //     )}
+  //     <p>{receiver}</p>
+  //   </Container>
+  // );
 }
 
 export default Chat;

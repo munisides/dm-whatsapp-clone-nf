@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import styled from "styled-components";
 import { Avatar, IconButton, Button } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
@@ -8,16 +9,22 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { collection, addDoc, query, where } from "firebase/firestore";
+import { collection, addDoc, query, where, getDoc } from "firebase/firestore";
 import Chat from "./Chat";
+import createChats from "@/utils/createChats";
 
-function Sidebar() {
+const Sidebar = async () => {
   const [user] = useAuthState(auth);
-  const userChatRef = query(
-    collection(db, "chats"),
-    where("users", "array-contains", user.email)
-  );
-  const [chatsSnapshot] = useCollection(userChatRef);
+  // const userChatRef = query(
+  //   collection(db, `users/${user.uid}/chats`),
+  //   where("email", "==", user?.email)
+  // );
+
+  const userChatRef = doc(db, 'users', `${user.id}`)
+  const doc = await getDoc(userChatRef);
+  // const [chatsSnapshot, loading, error] = useCollection(userChatRef);
+  // const chatsSnapshot = getDocs(userChatRef);
+  console.log("chatsnapshot: ", doc.data());
 
   const createChat = () => {
     const input = prompt(
@@ -34,10 +41,11 @@ function Sidebar() {
       input !== user.email
     ) {
       // add chat into DB 'chats' collection if it doesnt exists and is a valid email
-      const col = collection(db, "chats");
-      addDoc(col, {
-        users: [user.email, input],
-      });
+      // const col = collection(db, "chats");
+      // addDoc(col, {
+      //   users: [user.email, input],
+      // });
+      createChats(user, input);
     }
   };
 
@@ -75,9 +83,9 @@ function Sidebar() {
 
       <SidebarButton onClick={createChat}>Start a New Chat</SidebarButton>
 
-      {chatsSnapshot?.docs.map((chat) => (
-        <Chat key={chat.id} id={chat.id} users={chat.data().users} />
-      ))}
+      {/* {chatsSnapshot?.docs?.map((chat) => (
+        <Chat key={chat.id} id={chat.id} receiver={receiver} />
+      ))} */}
     </Container>
   );
 }
