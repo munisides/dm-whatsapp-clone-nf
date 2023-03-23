@@ -17,12 +17,26 @@ import {
   getDocs,
   onSnapshot,
   collectionGroup,
+  doc
 } from "firebase/firestore";
 import Chat from "./Chat";
-import createChats from "@/utils/createChats";
+import createNewChat from "@/utils/createChats";
+
+import * as React from "react";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import { useSnackbar } from "notistack";
 
 const Sidebar = () => {
+  const [open, setOpen] = useState(false);
   const [chats, setChats] = useState([]);
+  const [newChatEmail, setNewChatEmail] = useState("");
+
+  const { enqueueSnackbar } = useSnackbar();
   const [user] = useAuthState(auth);
 
   useEffect(() => {
@@ -31,6 +45,7 @@ const Sidebar = () => {
         collectionGroup(db, "chats"),
         where("sender", "==", user.email)
       );
+
       const querySnapshot = await getDocs(userChats);
       if (querySnapshot) {
         let chatters = [];
@@ -38,6 +53,7 @@ const Sidebar = () => {
         querySnapshot?.forEach((doc) => {
           chatters.push({ ...doc.data(), id: doc.id });
         });
+
         setChats(chatters);
         console.log("receiver: ", chatters);
       }
@@ -45,34 +61,53 @@ const Sidebar = () => {
     getChats();
   }, [user.email]);
 
-  // const createChat = () => {
-  //   const input = prompt(
-  //     "Please enter an email address for the user you wish to chat with: "
-  //   );
+  const handleModalOpen = () => {
+    setOpen(true);
+  };
 
-  //   if (!input) {
-  //     return null;
-  //   }
+  const handleModalClose = () => {
+    setOpen(false);
+    setNewChatEmail("");
+  };
 
-  //   if (
-  //     EmailValidator.validate(input) &&
-  //     !chatAlreadyExists(input) &&
-  //     input !== user.email
-  //   ) {
-  //     // add chat into DB 'chats' collection if it doesnt exists and is a valid email
-  //     // const col = collection(db, "chats");
-  //     // addDoc(col, {
-  //     //   users: [user.email, input],
-  //     // });
-  //     createChats(user, input);
-  //   }
-  // };
+  const createNewChat = async () => {
+    if (!newChatEmail) {
+      return null;
+    }
 
-  // const chatAlreadyExists = (receiverEmail) =>
-  //   !!chatsSnapshot?.docs.find(
-  //     (chat) =>
-  //       chat.data().users.find((user) => user === receiverEmail) !== undefined
-  //   );
+    if (!EmailValidator.validate(newChatEmail)) {
+      enqueueSnackbar("Incorrect email", {
+        variant: "error",
+        autoHideDuration: 5000,
+      });
+      // handleModalClose();
+      return null;
+    }
+
+    if (chats.find((chat) => chat.receiver === newChatEmail)) {
+      enqueueSnackbar("Chat already exists", {
+        variant: "error",
+        autoHideDuration: 5000,
+      });
+      // handleModalClose();
+      return null;
+    }
+
+    if (newChatEmail !== user.email) {
+      const docRef = doc(db, `users/${user.uid}`);
+      const colRef = collection(docRef, "chats");
+      await addDoc(
+        colRef,
+        {
+          sender: user.email,
+          receiver: newChatEmail,
+        },
+        { merge: true }
+      );
+      handleModalClose();
+      setNewChatEmail("");
+    }
+  };
 
   return (
     <Container>
@@ -100,11 +135,34 @@ const Sidebar = () => {
         <SearchInput placeholder="Search in Chats" />
       </Search>
 
-      <SidebarButton>Start a New Chat</SidebarButton>
+      <SidebarButton onClick={handleModalOpen}>Start a New Chat</SidebarButton>
 
       {chats?.map((chat) => (
         <Chat key={chat.id} id={chat.id} chatInfo={chat} />
       ))}
+
+      <Dialog open={open} onClose={handleModalClose}>
+        <DialogTitle>New Direct Message</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{"Enter the Contact's Email"}</DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="new-chat-modal"
+            label="Email Address"
+            type="email"
+            fullWidth
+            variant="standard"
+            onChange={(event) => setNewChatEmail(event.target.value)}
+            name="newChatEmail"
+            value={newChatEmail}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleModalClose}>CANCEL</Button>
+          <Button onClick={createNewChat}>START</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

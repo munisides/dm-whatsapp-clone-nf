@@ -36,7 +36,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, isError] = useState(false);
-  const [checked, setChecked] = React.useState(false);
+  const [checked, setChecked] = useState(false);
 
   const whatsappLogo =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/2042px-WhatsApp.svg.png";
@@ -88,18 +88,18 @@ const Login = () => {
           const user = userCredential.user;
           // const photoURL = "https://api.dicebear.com/4.4/bottts/svg";
           // if (user) {
-            // addToUsers(user, photoURL);
-            // createChats(user);
-            // const document = doc(db, `users/${user.uid}`);
-            // setDoc(
-            //   document,
-            //   {
-            //     email: user.email,
-            //     lastSeen: Timestamp.now(),
-            //     photoURL: "https://api.dicebear.com/4.4/bottts/svg",
-            //   },
-            //   { merge: true }
-            // );
+          //   addToUsers(user, photoURL);
+          //   createChats(user);
+          //   const document = doc(db, `users/${user.uid}`);
+          //   setDoc(
+          //     document,
+          //     {
+          //       email: user.email,
+          //       lastSeen: Timestamp.now(),
+          //       photoURL: "https://api.dicebear.com/4.4/bottts/svg",
+          //     },
+          //     { merge: true }
+          //   );
           // }
           router.push("/Main");
         })

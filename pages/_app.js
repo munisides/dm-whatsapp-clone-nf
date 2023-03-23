@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import { SnackbarProvider } from "notistack";
 
 // import { useAuthState } from "react-firebase-hooks/auth";
 // import { auth, db } from "../firebase";
@@ -32,5 +33,9 @@ export default function App({ Component, pageProps }) {
 
   // return <Login />;
 
-  return <Component {...pageProps} />
+  return (
+    <SnackbarProvider maxSnack={3}>
+      <Component {...pageProps} />
+    </SnackbarProvider>
+  );
 }

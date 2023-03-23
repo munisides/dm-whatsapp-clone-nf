@@ -20,7 +20,7 @@ import {
 } from "firebase/firestore";
 import Message from "./Message";
 import { useRef, useState } from "react";
-import getRecipientEmail from "../utils/getRecipientEmail";
+import getReceiverEmail from "@/utils/getReceiverEmail";
 import TimeAgo from "timeago-react";
 
 function Chatscreen({ chat, messages }) {
@@ -34,7 +34,7 @@ function Chatscreen({ chat, messages }) {
       orderBy("timestamp", "asc")
     )
   );
-  const recipientEmail = getRecipientEmail(chat.users, user);
+  const recipientEmail = getReceiverEmail(chat.users, user);
   const [recipientSnapshot] = useCollection(
     query(collection(db, "users"), where("email", "==", recipientEmail))
   );

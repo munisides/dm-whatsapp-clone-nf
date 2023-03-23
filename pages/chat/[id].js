@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
-import getRecipientEmail from "../../utils/getRecipientEmail";
+import getReceiverEmail from "../../utils/getReceiverEmail";
 
 function Chat({ chat, messages }) {
   const [user] = useAuthState(auth);
@@ -20,7 +20,7 @@ function Chat({ chat, messages }) {
   return (
     <Container>
       <Head>
-        <title>Chat with {getRecipientEmail(chat.users, user)}</title>
+        <title>Chat with {getReceiverEmail(chat.users, user)}</title>
       </Head>
       <Sidebar />
       <ChatContainer>
