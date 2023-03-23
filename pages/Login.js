@@ -29,6 +29,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { useRouter } from "next/router";
 import addToUsers from "@/utils/addToUsers";
 import createChats from "@/utils/createChats";
+import { useSnackbar } from "notistack";
 
 const Login = () => {
   // const [user] = useAuthState(auth);
@@ -37,6 +38,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, isError] = useState(false);
   const [checked, setChecked] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   const whatsappLogo =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/2042px-WhatsApp.svg.png";
@@ -107,6 +109,10 @@ const Login = () => {
           isError(true);
           const errorMessage = error.message;
           console.log("error: ", errorMessage);
+          enqueueSnackbar(errorMessage.substring(22, errorMessage.length-2), {
+            variant: "error",
+            autoHideDuration: 5000,
+          });
         });
     }
   };

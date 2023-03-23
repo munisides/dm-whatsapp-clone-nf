@@ -7,7 +7,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import * as EmailValidator from "email-validator";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { signOut } from "firebase/auth";
+import { signOut,deleteUser  } from "firebase/auth";
 import { auth, db } from "../firebase";
 import {
   collection,
@@ -17,10 +17,9 @@ import {
   getDocs,
   onSnapshot,
   collectionGroup,
-  doc
+  doc,
 } from "firebase/firestore";
 import Chat from "./Chat";
-import createNewChat from "@/utils/createChats";
 
 import * as React from "react";
 import TextField from "@mui/material/TextField";
@@ -29,6 +28,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import { useSnackbar } from "notistack";
 
 const Sidebar = () => {
@@ -36,8 +37,46 @@ const Sidebar = () => {
   const [chats, setChats] = useState([]);
   const [newChatEmail, setNewChatEmail] = useState("");
 
+  //
   const { enqueueSnackbar } = useSnackbar();
   const [user] = useAuthState(auth);
+
+  //
+  const [anchorEl, setAnchorEl] = useState(null);
+  const menuOpen = Boolean(anchorEl);
+  const [openMenu, setOpenMenu] = useState(false);
+  const handleOpenMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+    setOpenMenu(true);
+  };
+
+  const handleCloseMenu = (menuOption) => {
+    if (menuOption === "profile") {
+      console.log(menuOption);
+      setAnchorEl(null);
+    } else if (menuOption === "delete") {
+      deleteUser(user)
+        .then(() => {
+          // User deleted.
+          enqueueSnackbar("Deleting user...", {
+            variant: "error",
+            autoHideDuration: 5000,
+          });
+        })
+        .catch((error) => {
+          // An error ocurred
+          const errorMessage = error.message;
+          console.log("error: ", errorMessage);
+          enqueueSnackbar(errorMessage.substring(22, errorMessage.length - 2), {
+            variant: "error",
+            autoHideDuration: 5000,
+          });
+        });
+      setAnchorEl(null);
+    } else {
+      signOut(auth);
+    }
+  };
 
   useEffect(() => {
     const getChats = async () => {
@@ -112,12 +151,23 @@ const Sidebar = () => {
   return (
     <Container>
       <Header>
-        <UserAvatar
-          src={user.photoURL}
-          onClick={() => {
-            signOut(auth);
-          }}
-        />
+        <Button
+          id="basic-button"
+          aria-controls={open ? "basic-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? "true" : undefined}
+          onClick={(e) => handleOpenMenu(e)}
+        >
+          <UserAvatar
+            src={user.photoURL}
+            // onClick={
+            //   // () => {
+            //   // signOut(auth);
+            //   // }
+            //   handleOpenMenu
+            // }
+          />
+        </Button>
 
         <IconsContainer>
           <IconButton>
@@ -163,6 +213,32 @@ const Sidebar = () => {
           <Button onClick={createNewChat}>START</Button>
         </DialogActions>
       </Dialog>
+
+      {/*  */}
+
+      {openMenu && (
+        <Menu
+          id="basic-menu"
+          anchorEl={anchorEl}
+          open={menuOpen}
+          onClose={() => handleCloseMenu()}
+          MenuListProps={{
+            "aria-labelledby": "basic-button",
+          }}
+        >
+          <MenuItem
+            onClick={() => {
+              handleCloseMenu("profile");
+            }}
+          >
+            Profile
+          </MenuItem>
+          <MenuItem onClick={() => handleCloseMenu("delete")}>
+            Delete Account
+          </MenuItem>
+          <MenuItem onClick={() => handleCloseMenu("logout")}>Logout</MenuItem>
+        </Menu>
+      )}
     </Container>
   );
 };

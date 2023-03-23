@@ -23,6 +23,7 @@ import { auth } from "../firebase";
 import Image from "next/image";
 import addToUsers from "@/utils/addToUsers";
 import createChats from "@/utils/createChats";
+import { useSnackbar } from "notistack";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -32,8 +33,8 @@ const Login = () => {
   const [error, isError] = useState(false);
   const [errorCodeMessage, isErrorCodeMessage] = useState("");
   const router = useRouter();
-
   const [checked, setChecked] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   const whatsappLogo =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/2042px-WhatsApp.svg.png";
@@ -63,6 +64,11 @@ const Login = () => {
           isError(true);
           const errorMessage = error.message;
           console.log("error: ", errorMessage);
+          enqueueSnackbar(errorMessage.substring(22, errorMessage.length-2), {
+            variant: "error",
+            autoHideDuration: 5000,
+          });
+
           if (errorMessage === "Firebase: Error (auth/invalid-email).") {
             isErrorCodeMessage("Invalid Email");
           } else if (errorMessage === "auth/invalid-password") {
