@@ -7,8 +7,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import * as EmailValidator from "email-validator";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { signOut,deleteUser  } from "firebase/auth";
-import { auth, db } from "../firebase";
+import { signOut, deleteUser } from "firebase/auth";
+import { auth, db } from "@/firebase";
 import {
   collection,
   addDoc,
@@ -18,6 +18,7 @@ import {
   onSnapshot,
   collectionGroup,
   doc,
+  QuerySnapshot,
 } from "firebase/firestore";
 import Chat from "./Chat";
 
@@ -31,20 +32,31 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { useSnackbar } from "notistack";
+import createChat from "@/utils/createChat";
 
 const Sidebar = () => {
+  const [user] = useAuthState(auth);
   const [open, setOpen] = useState(false);
   const [chats, setChats] = useState([]);
   const [newChatEmail, setNewChatEmail] = useState("");
 
   //
   const { enqueueSnackbar } = useSnackbar();
-  const [user] = useAuthState(auth);
 
   //
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
   const [openMenu, setOpenMenu] = useState(false);
+
+  //
+  // const userChatRef = user && query(collection(db, "chats"), where("users", "array-contains", user.email));
+
+  const [chatsSnapshot, loading, error] = useCollection(query(collection(db, "chats"), where("users", "array-contains", user?.email)),
+  {
+    snapshotListenOptions: { includeMetadataChanges: true },
+  });
+
+  //
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
     setOpenMenu(true);
@@ -52,7 +64,6 @@ const Sidebar = () => {
 
   const handleCloseMenu = (menuOption) => {
     if (menuOption === "profile") {
-      console.log(menuOption);
       setAnchorEl(null);
     } else if (menuOption === "delete") {
       deleteUser(user)
@@ -78,27 +89,38 @@ const Sidebar = () => {
     }
   };
 
+  // useEffect(() => {
+  //   const getChats = async () => {
+  //     const userChats = query(
+  //       collectionGroup(db, "chats"),
+  //       where("sender", "==", user.email)
+  //     );
+
+  //     const querySnapshot = await getDocs(userChats);
+  //     if (querySnapshot) {
+  //       let chatters = [];
+  //       console.log("snapshot exists");
+  //       querySnapshot?.forEach((doc) => {
+  //         chatters.push({ ...doc.data(), id: doc.id });
+  //       });
+
+  //       setChats(chatters);
+  //       console.log("receiver: ", chatters);
+  //     }
+  //   };
+  //   getChats();
+  // }, [user.email]);
+
   useEffect(() => {
-    const getChats = async () => {
-      const userChats = query(
-        collectionGroup(db, "chats"),
-        where("sender", "==", user.email)
-      );
-
-      const querySnapshot = await getDocs(userChats);
-      if (querySnapshot) {
-        let chatters = [];
-        console.log("snapshot exists");
-        querySnapshot?.forEach((doc) => {
-          chatters.push({ ...doc.data(), id: doc.id });
-        });
-
-        setChats(chatters);
-        console.log("receiver: ", chatters);
-      }
-    };
-    getChats();
-  }, [user.email]);
+    if (chatsSnapshot) {
+      let chatters = [];
+      chatsSnapshot.docs.map((doc) => {
+        // chatters.push({ ...doc.data().users, id: doc.id });
+        chatters.push({ chatRecEmail: doc.data().users[1], chatId: doc.id});
+      });
+      setChats(chatters);
+    }
+  }, [chatsSnapshot]);
 
   const handleModalOpen = () => {
     setOpen(true);
@@ -133,16 +155,23 @@ const Sidebar = () => {
     }
 
     if (newChatEmail !== user.email) {
-      const docRef = doc(db, `users/${user.uid}`);
-      const colRef = collection(docRef, "chats");
-      await addDoc(
-        colRef,
-        {
-          sender: user.email,
-          receiver: newChatEmail,
-        },
-        { merge: true }
-      );
+      // const docRef = doc(db, `users/${user.uid}`);
+      // const colRef = collection(docRef, "chats");
+      // await addDoc(
+      //   colRef,
+      //   {
+      //     sender: user.email,
+      //     receiver: newChatEmail,
+      //   },
+      //   { merge: true }
+      // );
+
+      // db.collection("chats").add({
+      //   users: [user.email, newChatEmail],
+      // });
+
+      createChat(user.email, newChatEmail);
+
       handleModalClose();
       setNewChatEmail("");
     }
@@ -188,7 +217,7 @@ const Sidebar = () => {
       <SidebarButton onClick={handleModalOpen}>Start a New Chat</SidebarButton>
 
       {chats?.map((chat) => (
-        <Chat key={chat.id} id={chat.id} chatInfo={chat} />
+        <Chat key={chat.chatId} id={chat.chatId} chatRecEmail={chat.chatRecEmail} />
       ))}
 
       <Dialog open={open} onClose={handleModalClose}>

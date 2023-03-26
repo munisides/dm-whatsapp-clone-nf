@@ -34,9 +34,9 @@ function Chatscreen({ chat, messages }) {
       orderBy("timestamp", "asc")
     )
   );
-  const recipientEmail = getReceiverEmail(chat.users, user);
+  
   const [recipientSnapshot] = useCollection(
-    query(collection(db, "users"), where("email", "==", recipientEmail))
+    query(collection(db, "users"), where("email", "==", chat.users[1]))
   );
 
   const showMessages = () => {
@@ -97,7 +97,7 @@ function Chatscreen({ chat, messages }) {
         <Avatar />
 
         <HeaderInformation>
-          <h3>{recipientEmail}</h3>
+          <h3>{chat.users[1]}</h3>
           {recipientSnapshot ? (
             <p>
               Last active:{" "}

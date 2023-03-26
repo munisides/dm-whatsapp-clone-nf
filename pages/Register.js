@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import Image from "next/image";
 import addToUsers from "@/utils/addToUsers";
 import createChats from "@/utils/createChats";
@@ -64,7 +64,7 @@ const Login = () => {
           isError(true);
           const errorMessage = error.message;
           console.log("error: ", errorMessage);
-          enqueueSnackbar(errorMessage.substring(22, errorMessage.length-2), {
+          enqueueSnackbar(errorMessage.substring(22, errorMessage.length - 2), {
             variant: "error",
             autoHideDuration: 5000,
           });

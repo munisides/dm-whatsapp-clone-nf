@@ -3,39 +3,56 @@ import { Avatar } from "@mui/material";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useRouter } from "next/router";
 import styled from "styled-components";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
+// import { useCollection, useAuthState } from 'react-firebase-hooks/firestore';
+// import getReceiverEmail from "@/utils/getReceiverEmail";
 
-function Chat({ id, chatInfo }) {
+function Chat({ id, chatRecEmail }) {
+  // const [user] = useAuthState(auth);
   const [receiverData, setReceiverData] = useState({});
   const router = useRouter();
 
   useEffect(() => {
     const getSnapshot = async () => {
-      if (chatInfo) {
+      if (chatRecEmail) {
         const docRef = collection(db, "users");
         const getReceiverQuery = query(
           docRef,
-          where("email", "==", chatInfo?.receiver)
+          where("email", "==", chatRecEmail)
         );
         const querySnapshot = await getDocs(getReceiverQuery);
         querySnapshot.forEach((doc) => {
-          console.log(doc.id, " => ", doc.data());
+          // console.log(doc.id, " => ", doc.data());
           setReceiverData(doc.data());
         });
       }
     };
     getSnapshot();
-  }, [chatInfo]);
+  }, [chatRecEmail]);
 
-  console.log(chatInfo?.receiver);
+  // const userChatRef = db
+  //   .collection('users')
+  //   .where('email', '==', chatReceiver);
+
+  // const [receiverSnapshot] = useCollection(userChatRef);
+
+  // console.log('rec: ', chatReceiver)
+  // const [receiverSnapshot, loading, error] = useCollection(query(collection(db, "users"), where("email", "==", chatReceiver)),
+  // {
+  //   snapshotListenOptions: { includeMetadataChanges: true },
+  // });
+  // const receiverUser = receiverSnapshot?.docs?.[0]?.data();
+  // console.log('user: ', receiverUser)
+
+  // console.log(chatInfo?.receiver);
   const enterChat = () => {
     router.push(`/chat/${id}`);
   };
 
   return (
     <Container onClick={enterChat}>
-      {chatInfo && <UserAvatar src={receiverData.photoURL} />}
-      <p>{chatInfo?.receiver}</p>
+      {chatRecEmail && <UserAvatar src={receiverData.photoURL} />}
+      <p>{chatRecEmail}</p>
     </Container>
   );
 }
@@ -46,7 +63,6 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 15px;
   word-break: break-word;
 
   :hover {
