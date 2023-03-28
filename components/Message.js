@@ -1,12 +1,17 @@
+import { useEffect } from "react";
 import styled from "styled-components";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../firebase";
 import moment from "moment";
+import { useRouter } from "next/router";
 
 function Message({ user, message }) {
   const [userLoggedIn] = useAuthState(auth);
 
-  const TypeOfMessage = user === userLoggedIn.email ? Sender : Receiver;
+  console.log('message user: ', user)
+  console.log('user logged in: ', userLoggedIn)
+
+  const TypeOfMessage = user === userLoggedIn?.email ? Sender : Receiver;
 
   return (
     <Container>

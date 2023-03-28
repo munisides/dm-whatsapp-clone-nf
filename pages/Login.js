@@ -14,16 +14,16 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import { auth, provider, db } from "../firebase";
-import { useCollection } from "react-firebase-hooks/firestore";
-import {
-  collection,
-  addDoc,
-  doc,
-  setDoc,
-  Timestamp,
-  query,
-  where,
-} from "firebase/firestore";
+// import { useCollection } from "react-firebase-hooks/firestore";
+// import {
+//   collection,
+//   addDoc,
+//   doc,
+//   setDoc,
+//   Timestamp,
+//   query,
+//   where,
+// } from "firebase/firestore";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useRouter } from "next/router";

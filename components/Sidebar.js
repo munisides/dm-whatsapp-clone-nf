@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import styled from "styled-components";
 import { Avatar, IconButton, Button } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
@@ -7,7 +7,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import * as EmailValidator from "email-validator";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { signOut, deleteUser } from "firebase/auth";
+import { deleteUser, signOut } from "firebase/auth";
 import { auth, db } from "@/firebase";
 import {
   collection,
@@ -33,9 +33,11 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { useSnackbar } from "notistack";
 import createChat from "@/utils/createChat";
+import { useRouter } from "next/router";
 
 const Sidebar = () => {
   const [user] = useAuthState(auth);
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [chats, setChats] = useState([]);
   const [newChatEmail, setNewChatEmail] = useState("");
@@ -47,14 +49,17 @@ const Sidebar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
   const [openMenu, setOpenMenu] = useState(false);
+  const [menuOption, setMenuOption] = useState("");
 
   //
-  // const userChatRef = user && query(collection(db, "chats"), where("users", "array-contains", user.email));
-
-  const [chatsSnapshot, loading, error] = useCollection(query(collection(db, "chats"), where("users", "array-contains", user?.email)),
-  {
-    snapshotListenOptions: { includeMetadataChanges: true },
-  });
+  const userChatRef = user && query(collection(db, "chats"), where("users", "array-contains", user.email));
+ 
+  const [chatsSnapshot, loading, error] = useCollection(
+    userChatRef,
+    {
+      snapshotListenOptions: { includeMetadataChanges: true },
+    }
+  );
 
   //
   const handleOpenMenu = (event) => {
@@ -62,21 +67,49 @@ const Sidebar = () => {
     setOpenMenu(true);
   };
 
-  const handleCloseMenu = (menuOption) => {
-    if (menuOption === "profile") {
-      setAnchorEl(null);
-    } else if (menuOption === "delete") {
+
+  useEffect(() => {
+    if (menuOption === "logout") {
+      // signOutUser();
+      router.push("/Login");
+      signOut(auth);
+    }
+    if (menuOption === 'delete') {
       deleteUser(user)
         .then(() => {
-          // User deleted.
           enqueueSnackbar("Deleting user...", {
             variant: "error",
             autoHideDuration: 5000,
           });
         })
-        .catch((error) => {
+        .catch((e) => {
           // An error ocurred
-          const errorMessage = error.message;
+          const errorMessage = e.message;
+          console.log("error: ", errorMessage);
+          enqueueSnackbar(errorMessage.substring(22, errorMessage.length - 2), {
+            variant: "error",
+            autoHideDuration: 5000,
+          });
+        });
+      setAnchorEl(null);
+    }
+    console.log("option: ", menuOption);
+  }, [enqueueSnackbar, menuOption, router, user]);
+
+  const handleCloseMenu = () => {
+    if (menuOption === "profile") {
+      setAnchorEl(null);
+    } else if (menuOption === "delete") {
+      deleteUser(user)
+        .then(() => {
+          enqueueSnackbar("Deleting user...", {
+            variant: "error",
+            autoHideDuration: 5000,
+          });
+        })
+        .catch((e) => {
+          // An error ocurred
+          const errorMessage = e.message;
           console.log("error: ", errorMessage);
           enqueueSnackbar(errorMessage.substring(22, errorMessage.length - 2), {
             variant: "error",
@@ -85,42 +118,21 @@ const Sidebar = () => {
         });
       setAnchorEl(null);
     } else {
-      signOut(auth);
+      setAnchorEl(null);
+      setMenuOption("logout");
     }
   };
-
-  // useEffect(() => {
-  //   const getChats = async () => {
-  //     const userChats = query(
-  //       collectionGroup(db, "chats"),
-  //       where("sender", "==", user.email)
-  //     );
-
-  //     const querySnapshot = await getDocs(userChats);
-  //     if (querySnapshot) {
-  //       let chatters = [];
-  //       console.log("snapshot exists");
-  //       querySnapshot?.forEach((doc) => {
-  //         chatters.push({ ...doc.data(), id: doc.id });
-  //       });
-
-  //       setChats(chatters);
-  //       console.log("receiver: ", chatters);
-  //     }
-  //   };
-  //   getChats();
-  // }, [user.email]);
 
   useEffect(() => {
     if (chatsSnapshot) {
       let chatters = [];
       chatsSnapshot.docs.map((doc) => {
         // chatters.push({ ...doc.data().users, id: doc.id });
-        chatters.push({ chatRecEmail: doc.data().users[1], chatId: doc.id});
+        chatters.push({ chatRecEmail: doc.data().users[1], chatId: doc.id });
       });
       setChats(chatters);
     }
-  }, [chatsSnapshot]);
+  }, [error, chatsSnapshot]);
 
   const handleModalOpen = () => {
     setOpen(true);
@@ -141,7 +153,6 @@ const Sidebar = () => {
         variant: "error",
         autoHideDuration: 5000,
       });
-      // handleModalClose();
       return null;
     }
 
@@ -155,21 +166,6 @@ const Sidebar = () => {
     }
 
     if (newChatEmail !== user.email) {
-      // const docRef = doc(db, `users/${user.uid}`);
-      // const colRef = collection(docRef, "chats");
-      // await addDoc(
-      //   colRef,
-      //   {
-      //     sender: user.email,
-      //     receiver: newChatEmail,
-      //   },
-      //   { merge: true }
-      // );
-
-      // db.collection("chats").add({
-      //   users: [user.email, newChatEmail],
-      // });
-
       createChat(user.email, newChatEmail);
 
       handleModalClose();
@@ -188,14 +184,9 @@ const Sidebar = () => {
           onClick={(e) => handleOpenMenu(e)}
         >
           <UserAvatar
-            src={user.photoURL}
-            // onClick={
-            //   // () => {
-            //   // signOut(auth);
-            //   // }
-            //   handleOpenMenu
-            // }
+            src={user?.photoURL}
           />
+          <p>{user?.email}</p>
         </Button>
 
         <IconsContainer>
@@ -215,9 +206,13 @@ const Sidebar = () => {
       </Search>
 
       <SidebarButton onClick={handleModalOpen}>Start a New Chat</SidebarButton>
-
+      {loading && <span>Loading...</span>}
       {chats?.map((chat) => (
-        <Chat key={chat.chatId} id={chat.chatId} chatRecEmail={chat.chatRecEmail} />
+        <Chat
+          key={chat.chatId}
+          id={chat.chatId}
+          chatRecEmail={chat.chatRecEmail}
+        />
       ))}
 
       <Dialog open={open} onClose={handleModalClose}>
@@ -257,15 +252,28 @@ const Sidebar = () => {
         >
           <MenuItem
             onClick={() => {
-              handleCloseMenu("profile");
+              setMenuOption("profile");
+              // handleCloseMenu();
             }}
           >
             Profile
           </MenuItem>
-          <MenuItem onClick={() => handleCloseMenu("delete")}>
+          <MenuItem
+            onClick={() => {
+              setMenuOption("delete");
+              // handleCloseMenu();
+            }}
+          >
             Delete Account
           </MenuItem>
-          <MenuItem onClick={() => handleCloseMenu("logout")}>Logout</MenuItem>
+          <MenuItem
+            onClick={() => {
+              setMenuOption("logout");
+              // handleCloseMenu();
+            }}
+          >
+            Logout
+          </MenuItem>
         </Menu>
       )}
     </Container>

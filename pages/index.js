@@ -1,12 +1,16 @@
 import Head from "next/head";
 import { Inter } from "next/font/google";
 import Login from "./Login";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/firebase";
 // import LoginForm from "../components/LoginForm";
 // import Sidebar from "@/components/Sidebar";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const [user] = useAuthState(auth);
+
   return (
     <>
       <Head>

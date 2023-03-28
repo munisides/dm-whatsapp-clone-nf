@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Head from "next/head";
 import styled from "styled-components";
 import Sidebar from "../../components/Sidebar";
@@ -12,13 +13,27 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { useRouter } from "next/router";
+import { signOut } from "firebase/auth";
+import Login from "../Login";
 // import getReceiverEmail from "../../utils/getReceiverEmail";
 
 function Chat({ chat, messages }) {
-  // const [user] = useAuthState(auth);
+  const [user] = useAuthState(auth);
+  const router = useRouter();
 
-  return (
-    <Container>
+  useEffect(() => {
+    // in case user logs out and the back button is clicked
+    if (!user || user === undefined || user === null) {
+      signOut(auth);
+      router.replace("/Login"); // to remove route params
+      console.log('user after logout: ', user)
+      // return;
+    }
+  }, [router, user]);
+
+  return (user ?
+    (<Container>
       <Head>
         <title>Chat with {chat.users[1]}</title>
       </Head>
@@ -26,7 +41,7 @@ function Chat({ chat, messages }) {
       <ChatContainer>
         <ChatScreen chat={chat} messages={messages} />
       </ChatContainer>
-    </Container>
+    </Container>) : (<Login />)
   );
 }
 
