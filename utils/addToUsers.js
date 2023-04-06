@@ -1,17 +1,20 @@
-import { db, setDoc, doc, Timestamp } from 'firebase/firestore'
+import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { db } from "@/firebase";
 
-const addToUsers = async (user, imgUrl) => {
-    const document = doc(db, `users/${user.uid}`);
-    await setDoc(
-      document,
-      {
-        username: user.username,
-        email: user.email,
-        lastSeen: Timestamp.now(),
-        photoURL: imgUrl,
-      },
-      { merge: true }
-    );
-  };
+const addToUsers = async (username, email, imgUrl) => {
+  const colRef = collection(db, "users");
+  await addDoc(
+    colRef,
+    {
+      username: username,
+      email: email,
+      lastSeen: Timestamp.now(),
+      photoURL: imgUrl,
+    },
+    { merge: true }
+  ).catch((e) => {
+    console.log("error: ", e);
+  });
+};
 
-  export default addToUsers;
+export default addToUsers;
