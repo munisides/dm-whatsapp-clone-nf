@@ -8,6 +8,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
 import MicIcon from "@mui/icons-material/Mic";
+// import SendIcon from '@mui/icons-material/Send';
 import {
   collection,
   doc,
@@ -20,7 +21,7 @@ import {
 } from "firebase/firestore";
 import Message from "./Message";
 import { useRef, useState } from "react";
-import getReceiverEmail from "@/utils/getReceiverEmail";
+// import getReceiverEmail from "@/utils/getReceiverEmail";
 import TimeAgo from "timeago-react";
 
 function Chatscreen({ chat, messages }) {
@@ -34,9 +35,9 @@ function Chatscreen({ chat, messages }) {
       orderBy("timestamp", "asc")
     )
   );
-  
+
   const [recipientSnapshot] = useCollection(
-    query(collection(db, "users"), where("email", "==", chat.users[1]))
+    query(collection(db, "users"), where("email", "==", chat.users[0]))
   );
 
   const showMessages = () => {
@@ -97,7 +98,9 @@ function Chatscreen({ chat, messages }) {
         <Avatar />
 
         <HeaderInformation>
-          <h3>{chat.users[1]}</h3>
+          <h3>
+            {chat.users[0] === user?.email ? chat.users[1] : chat.users[0]}
+          </h3>
           {recipientSnapshot ? (
             <p>
               Last active:{" "}
@@ -134,6 +137,9 @@ function Chatscreen({ chat, messages }) {
         <button hidden disabled={!input} type="submit" onClick={sendMessage}>
           Send Message
         </button>
+        {/* <IconButton type="submit" onClick={sendMessage}>
+          <SendIcon />
+        </IconButton> */}
         <IconButton>
           <MicIcon />
         </IconButton>
@@ -144,7 +150,10 @@ function Chatscreen({ chat, messages }) {
 
 export default Chatscreen;
 
-const Container = styled.div``;
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
 
 const Header = styled.div`
   position: sticky;

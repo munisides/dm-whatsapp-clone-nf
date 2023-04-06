@@ -27,21 +27,26 @@ function Chat({ chat, messages }) {
     if (!user || user === undefined || user === null) {
       signOut(auth);
       router.replace("/Login"); // to remove route params
-      console.log('user after logout: ', user)
+      console.log("user after logout: ", user);
       // return;
     }
   }, [router, user]);
 
-  return (user ?
-    (<Container>
+  return user ? (
+    <Container>
       <Head>
-        <title>Chat with {chat.users[1]}</title>
+        <title>
+          Chat with{" "}
+          {chat.users[0] === user?.email ? chat.users[1] : chat.users[0]}
+        </title>
       </Head>
       <Sidebar />
       <ChatContainer>
         <ChatScreen chat={chat} messages={messages} />
       </ChatContainer>
-    </Container>) : (<Login />)
+    </Container>
+  ) : (
+    <Login />
   );
 }
 

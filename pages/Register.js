@@ -1,13 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
 import Head from "next/head";
-// import { signInWithPopup } from "firebase/auth";
-// import {
-//   auth,
-//   provider,
-//   getAuth,
-//   createUserWithEmailAndPassword,
-// } from "../firebase";
 import {
   Button,
   Grid,
@@ -19,7 +12,7 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebase";
+import { auth } from "../firebase";
 import Image from "next/image";
 import addToUsers from "@/utils/addToUsers";
 import createChats from "@/utils/createChats";
@@ -43,7 +36,7 @@ const Login = () => {
     setChecked(event.target.checked);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (passwordOne.length < 6 || passwordTwo.length < 6) {
       isError(true);
@@ -55,7 +48,7 @@ const Login = () => {
           const user = userCredential.user;
           if (user) {
             const photoURL = "https://api.dicebear.com/4.4/bottts/svg";
-            addToUsers(user, photoURL);
+            addToUsers(username, email, photoURL);
             createChats(user, user);
           }
           router.push("/Main");
